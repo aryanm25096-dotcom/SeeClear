@@ -19,9 +19,7 @@ export default function App() {
           playsInline
           preload="auto"
           disableRemotePlayback
-          // @ts-expect-error non-standard mobile attributes
-          webkit-playsinline="true"
-          x5-playsinline="true"
+          {...({ "webkit-playsinline": "true", "x5-playsinline": "true" } as Record<string, string>)}
           poster="https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&q=60"
         >
           <source
