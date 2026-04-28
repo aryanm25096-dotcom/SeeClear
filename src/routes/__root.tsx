@@ -29,14 +29,17 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "SeeClear — AR Try-On & Smart Price Compare" },
+      {
+        name: "description",
+        content:
+          "Live AR try-on for makeup, eyewear, and jewellery. Compare prices across Nykaa, Amazon, Flipkart, Myntra and more — no hidden charges.",
+      },
+      { name: "author", content: "SeeClear" },
+      { property: "og:title", content: "SeeClear — AR Try-On & Smart Price Compare" },
+      { property: "og:description", content: "Try products live and compare every price across Indian shopping platforms." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {

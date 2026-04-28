@@ -20,10 +20,10 @@ function Logo({ className = "w-7 h-7 sm:w-8 sm:h-8" }: { className?: string }) {
 }
 
 const NAV_ITEMS = [
-  { label: "Home", dot: true },
-  { label: "Features" },
-  { label: "About" },
-  { label: "Pages", orange: true, chevron: true },
+  { label: "Home", dot: true, to: "/" as const },
+  { label: "Try-On", to: "/" as const },
+  { label: "Compare", to: "/" as const },
+  { label: "Categories", orange: true, chevron: true, to: "/" as const },
 ];
 
 export default function Navbar() {
