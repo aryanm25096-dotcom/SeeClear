@@ -3,6 +3,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Camera } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
 import PriceComparisonTable from "@/app/components/PriceComparisonTable";
+import ReviewSummary from "@/app/components/ReviewSummary";
 import { getProductById } from "@/data/products";
 import { platforms } from "@/data/platforms";
 import { formatPrice, getCheapestPlatform } from "@/utils/priceCalculator";
@@ -145,6 +146,11 @@ function ProductDetailPage() {
               Price comparison
             </h2>
             <PriceComparisonTable product={product} />
+          </div>
+
+          {/* Review Summary Section */}
+          <div className="mt-2">
+            <ReviewSummary category={product.category} />
           </div>
         </div>
       </div>

@@ -9,10 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrackRouteImport } from './routes/track'
+import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TryOnIdRouteImport } from './routes/try-on.$id'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,36 +43,58 @@ const ProductIdRoute = ProductIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/orders': typeof OrdersRoute
+  '/track': typeof TrackRoute
   '/product/$id': typeof ProductIdRoute
   '/try-on/$id': typeof TryOnIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/orders': typeof OrdersRoute
+  '/track': typeof TrackRoute
   '/product/$id': typeof ProductIdRoute
   '/try-on/$id': typeof TryOnIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/orders': typeof OrdersRoute
+  '/track': typeof TrackRoute
   '/product/$id': typeof ProductIdRoute
   '/try-on/$id': typeof TryOnIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/product/$id' | '/try-on/$id'
+  fullPaths: '/' | '/orders' | '/track' | '/product/$id' | '/try-on/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/product/$id' | '/try-on/$id'
-  id: '__root__' | '/' | '/product/$id' | '/try-on/$id'
+  to: '/' | '/orders' | '/track' | '/product/$id' | '/try-on/$id'
+  id: '__root__' | '/' | '/orders' | '/track' | '/product/$id' | '/try-on/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OrdersRoute: typeof OrdersRoute
+  TrackRoute: typeof TrackRoute
   ProductIdRoute: typeof ProductIdRoute
   TryOnIdRoute: typeof TryOnIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +121,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OrdersRoute: OrdersRoute,
+  TrackRoute: TrackRoute,
   ProductIdRoute: ProductIdRoute,
   TryOnIdRoute: TryOnIdRoute,
 }
