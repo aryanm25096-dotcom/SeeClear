@@ -77,113 +77,7 @@ const RECENT_SEARCHES = [
   },
 ];
 
-/* ---------- Fetch real product image from URL via CORS proxy ---------- */
-async function fetchProductImage(url: string): Promise<string | null> {
-  const CORS_PROXIES = [
-    (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  ];
-
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const response = await fetch(proxy(url), {
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!response.ok) continue;
-      const html = await response.text();
-
-      // Try multiple patterns to find the product image
-      const patterns = [
-        /og:image["']\s*content=["']([^"']+)/i,
-        /content=["']([^"']+)["']\s*property=["']og:image/i,
-        /twitter:image["']\s*content=["']([^"']+)/i,
-        /content=["']([^"']+)["']\s*name=["']twitter:image/i,
-        /"image"\s*:\s*"([^"]+)"/i,
-        /"imageUrl"\s*:\s*"([^"]+)"/i,
-        /"productImage"\s*:\s*"([^"]+)"/i,
-      ];
-
-      for (const pattern of patterns) {
-        const match = html.match(pattern);
-        if (match?.[1] && match[1].startsWith("http")) {
-          return match[1];
-        }
-      }
-    } catch {
-      // Try next proxy
-      continue;
-    }
-  }
-  return null;
-}
-
-/* ---------- Extract price from page HTML ---------- */
-function extractPriceFromHtml(html: string): number | null {
-  const patterns = [
-    /"price"\s*:\s*"?(\d+[\d,.]*)"?/i,
-    /"selling_price"\s*:\s*"?(\d+[\d,.]*)"?/i,
-    /"offerPrice"\s*:\s*"?(\d+[\d,.]*)"?/i,
-    /"sp"\s*:\s*"?(\d+[\d,.]*)"?/i,
-    /class="[^"]*price[^"]*"[^>]*>[\s₹Rs.]*(\d+[\d,.]*)/i,
-    /₹\s*(\d+[\d,.]*)/,
-    /Rs\.?\s*(\d+[\d,.]*)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match?.[1]) {
-      const price = parseFloat(match[1].replace(/,/g, ""));
-      if (price > 10 && price < 500000) return Math.round(price);
-    }
-  }
-  return null;
-}
-
-/* ---------- Fetch real data from URL ---------- */
-async function fetchRealProductData(url: string): Promise<{ image: string | null; price: number | null }> {
-  const CORS_PROXIES = [
-    (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-    (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  ];
-
-  for (const proxy of CORS_PROXIES) {
-    try {
-      const response = await fetch(proxy(url), {
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!response.ok) continue;
-      const html = await response.text();
-
-      // Extract image
-      let image: string | null = null;
-      const imgPatterns = [
-        /og:image["']\s*content=["']([^"']+)/i,
-        /content=["']([^"']+)["']\s*property=["']og:image/i,
-        /twitter:image["']\s*content=["']([^"']+)/i,
-        /content=["']([^"']+)["']\s*name=["']twitter:image/i,
-        /"image"\s*:\s*"([^"]+)"/i,
-        /"imageUrl"\s*:\s*"([^"]+)"/i,
-      ];
-      for (const pattern of imgPatterns) {
-        const match = html.match(pattern);
-        if (match?.[1] && match[1].startsWith("http")) {
-          image = match[1];
-          break;
-        }
-      }
-
-      // Extract price
-      const price = extractPriceFromHtml(html);
-
-      return { image, price };
-    } catch {
-      continue;
-    }
-  }
-  return { image: null, price: null };
-}
-
-async function simulateSearch(url: string): Promise<TrackedResult> {
+function simulateSearch(url: string): TrackedResult {
   const isNykaa = url.includes("nykaa");
   const isAmazon = url.includes("amazon");
   const isFlipkart = url.includes("flipkart");
@@ -291,11 +185,9 @@ async function simulateSearch(url: string): Promise<TrackedResult> {
     "Beauty & Personal Care": "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&q=70",
   };
 
-  // --- Fetch REAL image and price from the actual product URL ---
-  const realData = await fetchRealProductData(url);
-  const image = realData.image || CATEGORY_IMAGES[detectedCategory] || CATEGORY_IMAGES["Beauty & Personal Care"];
+  const image = CATEGORY_IMAGES[detectedCategory] || CATEGORY_IMAGES["Beauty & Personal Care"];
 
-  // Use real price if fetched, otherwise use realistic category-based pricing
+  // Realistic category-based pricing
   const CATEGORY_PRICE_RANGES: Record<string, [number, number]> = {
     "Body Care": [199, 799],
     "Skincare": [249, 1499],
@@ -319,8 +211,7 @@ async function simulateSearch(url: string): Promise<TrackedResult> {
   }
 
   const range = CATEGORY_PRICE_RANGES[detectedCategory] || [199, 1999];
-  const fallbackPrice = range[0] + Math.abs(hash % (range[1] - range[0]));
-  const basePrice = realData.price || fallbackPrice;
+  const basePrice = range[0] + Math.abs(hash % (range[1] - range[0]));
 
   const productName = cleanName || "Unknown Product";
   const searchQuery = encodeURIComponent(productName);
@@ -380,7 +271,6 @@ async function simulateSearch(url: string): Promise<TrackedResult> {
 /* ---------- ANIMATED SEARCHING STEPS ---------- */
 const SEARCH_STEPS = [
   "Extracting product details from URL...",
-  "Fetching product image & price...",
   "Searching across Nykaa...",
   "Checking Amazon prices...",
   "Scanning Flipkart listings...",
@@ -398,22 +288,13 @@ function TrackPage() {
   const [result, setResult] = useState<TrackedResult | null>(null);
   const [alertSet, setAlertSet] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const searchResultRef = useRef<TrackedResult | null>(null);
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (!url.trim()) return;
     setIsSearching(true);
     setSearchStep(0);
     setResult(null);
     setAlertSet(false);
-
-    // Start fetching real data in the background while animation plays
-    try {
-      searchResultRef.current = await simulateSearch(url);
-    } catch {
-      // Fallback: create result without real data
-      searchResultRef.current = null;
-    }
   };
 
   useEffect(() => {
@@ -424,14 +305,12 @@ function TrackPage() {
       return () => clearTimeout(t);
     } else {
       const t = setTimeout(() => {
-        if (searchResultRef.current) {
-          setResult(searchResultRef.current);
-        }
+        setResult(simulateSearch(url));
         setIsSearching(false);
       }, 400);
       return () => clearTimeout(t);
     }
-  }, [isSearching, searchStep]);
+  }, [isSearching, searchStep, url]);
 
   const best = result?.results.find((r) => r.inStock);
   const worst = result?.results.filter((r) => r.inStock).slice(-1)[0];
