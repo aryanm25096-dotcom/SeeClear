@@ -57,14 +57,12 @@ export default function ProductCard({ product }: { product: Product }) {
           >
             Compare
           </Link>
-          <button
-            type="button"
-            disabled
-            title="AR Try-On coming soon"
-            className="text-center bg-[#ef4d23]/10 text-[#ef4d23] rounded-full py-1.5 text-[12px] cursor-not-allowed"
+          <Link
+            to={`/try-on/${product.id}`}
+            className="text-center bg-[#ef4d23]/10 text-[#ef4d23] hover:bg-[#ef4d23]/20 transition-colors rounded-full py-1.5 text-[12px]"
           >
             Try-On 📷
-          </button>
+          </Link>
         </div>
       </div>
     </div>

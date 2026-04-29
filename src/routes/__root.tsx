@@ -47,6 +47,13 @@ export const Route = createRootRoute({
         href: appCss,
       },
     ],
+    scripts: [
+      { src: "https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js", crossOrigin: "anonymous" },
+      { src: "https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js", crossOrigin: "anonymous" },
+      { src: "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js", crossOrigin: "anonymous" },
+      { src: "https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js", crossOrigin: "anonymous" },
+      { src: "https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js", crossOrigin: "anonymous" }
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
