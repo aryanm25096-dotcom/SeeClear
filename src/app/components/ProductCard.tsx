@@ -58,7 +58,8 @@ export default function ProductCard({ product }: { product: Product }) {
             Compare
           </Link>
           <Link
-            to={`/try-on/${product.id}`}
+            to="/try-on/$id"
+            params={{ id: product.id }}
             className="text-center bg-[#ef4d23]/10 text-[#ef4d23] hover:bg-[#ef4d23]/20 transition-colors rounded-full py-1.5 text-[12px]"
           >
             Try-On 📷

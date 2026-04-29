@@ -42,7 +42,8 @@ function TryOnPage() {
       {/* Main Camera Area */}
       <div className="relative flex-1 h-full p-2 sm:p-4 pb-0 sm:pb-4 flex flex-col">
          <Link
-            to={`/product/${product.id}`}
+            to="/product/$id"
+            params={{ id: product.id }}
             className="absolute top-6 left-6 z-20 bg-black/50 p-2.5 rounded-full backdrop-blur-md hover:bg-black/80 text-white transition-colors"
           >
             <ArrowLeft size={20} />

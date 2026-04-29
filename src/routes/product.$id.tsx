@@ -115,7 +115,8 @@ function ProductDetailPage() {
 
               <div className="mt-5 flex flex-wrap gap-2">
                 <Link
-                  to={`/try-on/${product.id}`}
+                  to="/try-on/$id"
+                  params={{ id: product.id }}
                   className="inline-flex items-center gap-2 bg-[#ef4d23] text-white rounded-full px-5 py-2.5 text-[14px] hover:bg-[#d8401b] transition-colors"
                 >
                   <Camera size={16} /> Try On AR

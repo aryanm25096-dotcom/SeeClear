@@ -265,3 +265,109 @@ export function renderNails(
 
   ctx.restore();
 }
+
+export function renderRing(
+  ctx: CanvasRenderingContext2D,
+  handLandmarks: any[],
+  width: number,
+  height: number,
+  color: string = "#FFD700" // Gold
+) {
+  // Draw ring on ring finger (proximal phalanx)
+  // Landmarks 13 (MCP) and 14 (PIP) for ring finger
+  const mcp = getCanvasCoords(handLandmarks[13], width, height);
+  const pip = getCanvasCoords(handLandmarks[14], width, height);
+
+  const center = { x: (mcp.x + pip.x) / 2, y: (mcp.y + pip.y) / 2 };
+  const dist = getDistance(mcp, pip);
+  const radius = Math.max(dist * 0.4, 5);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  
+  // Ring band
+  ctx.beginPath();
+  ctx.ellipse(center.x, center.y, radius, radius * 0.6, getAngle(mcp, pip) + Math.PI/2, 0, 2 * Math.PI);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+
+  // Highlight/Gem
+  ctx.beginPath();
+  ctx.arc(center.x, center.y - radius * 0.4, 3, 0, 2 * Math.PI);
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fill();
+
+  ctx.restore();
+}
+
+export function renderBracelet(
+  ctx: CanvasRenderingContext2D,
+  handLandmarks: any[],
+  width: number,
+  height: number,
+  color: string = "#C0C0C0" // Silver
+) {
+  // Wrist is landmark 0
+  const wrist = getCanvasCoords(handLandmarks[0], width, height);
+  const mcpMiddle = getCanvasCoords(handLandmarks[9], width, height);
+  
+  const dist = getDistance(wrist, mcpMiddle);
+  const radius = Math.max(dist * 0.5, 15);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.beginPath();
+  ctx.ellipse(wrist.x, wrist.y + radius * 0.2, radius * 1.2, radius * 0.4, getAngle(wrist, mcpMiddle), 0, 2 * Math.PI);
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.ellipse(wrist.x, wrist.y + radius * 0.4, radius * 1.2, radius * 0.4, getAngle(wrist, mcpMiddle), 0, 2 * Math.PI);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+export function renderNecklace(
+  ctx: CanvasRenderingContext2D,
+  faceLandmarks: any[],
+  width: number,
+  height: number,
+  color: string = "#FFFFFF" // Pearl
+) {
+  // Chin is 152
+  const chin = getCanvasCoords(faceLandmarks[152], width, height);
+  const leftJaw = getCanvasCoords(faceLandmarks[132], width, height);
+  const rightJaw = getCanvasCoords(faceLandmarks[361], width, height);
+  
+  const faceWidth = getDistance(leftJaw, rightJaw);
+  
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  
+  const necklaceY = chin.y + faceWidth * 0.4;
+  const radius = faceWidth * 0.6;
+  
+  ctx.beginPath();
+  ctx.arc(chin.x, necklaceY, radius, Math.PI * 0.2, Math.PI * 0.8, false);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  
+  // Pearls
+  for(let angle = Math.PI * 0.25; angle <= Math.PI * 0.75; angle += 0.1) {
+    const px = chin.x + radius * Math.cos(angle);
+    const py = necklaceY + radius * Math.sin(angle);
+    ctx.beginPath();
+    ctx.arc(px, py, 6, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}

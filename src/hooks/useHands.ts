@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 declare global {
   interface Window {
@@ -7,51 +7,61 @@ declare global {
 }
 
 export function useHands(enabled: boolean = true) {
-  const handsRef = useRef<any>(null);
+  const [hands, setHands] = useState<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const onResultsCallbackRef = useRef<((results: any) => void) | null>(null);
+  const instanceRef = useRef<any>(null);
 
-  const setOnResults = (callback: (results: any) => void) => {
+  const setOnResults = useCallback((callback: (results: any) => void) => {
     onResultsCallbackRef.current = callback;
-  };
+  }, []);
 
   useEffect(() => {
-    if (!enabled) return;
-    
-    let checkInterval: NodeJS.Timeout;
+    if (!enabled) {
+      // Clean up if we were previously enabled
+      if (instanceRef.current) {
+        instanceRef.current.close();
+        instanceRef.current = null;
+        setHands(null);
+        setIsLoaded(false);
+      }
+      return;
+    }
+
+    let checkInterval: ReturnType<typeof setInterval>;
+    let cancelled = false;
 
     const initHands = () => {
       if (!window.Hands) {
         return false;
       }
 
-      const hands = new window.Hands({
+      const h = new window.Hands({
         locateFile: (file: string) => {
-          if (file.includes('face_mesh')) {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-          }
           return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
         }
       });
 
-      hands.setOptions({
+      h.setOptions({
         maxNumHands: 2,
         modelComplexity: 1,
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
       });
 
-      hands.onResults((results: any) => {
+      h.onResults((results: any) => {
         if (onResultsCallbackRef.current) {
           onResultsCallbackRef.current(results);
         }
       });
-      
-      handsRef.current = hands;
-      
-      // Set a timeout to allow the WASM backend to initialize before marking as loaded
-      hands.initialize().then(() => {
-        setIsLoaded(true);
+
+      instanceRef.current = h;
+
+      h.initialize().then(() => {
+        if (!cancelled) {
+          setHands(h);
+          setIsLoaded(true);
+        }
       }).catch((err: any) => {
         console.error("Failed to init Hands", err);
       });
@@ -68,13 +78,16 @@ export function useHands(enabled: boolean = true) {
     }
 
     return () => {
+      cancelled = true;
       if (checkInterval) clearInterval(checkInterval);
-      if (handsRef.current) {
-        handsRef.current.close();
+      if (instanceRef.current) {
+        instanceRef.current.close();
+        instanceRef.current = null;
       }
+      setHands(null);
       setIsLoaded(false);
     };
   }, [enabled]);
 
-  return { hands: handsRef.current, isLoaded, setOnResults };
+  return { hands, isLoaded, setOnResults };
 }

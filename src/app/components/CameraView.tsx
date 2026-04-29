@@ -11,7 +11,7 @@ export default function CameraView({ product }: CameraViewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  const { hasPermission, error, isInitializing, isProcessing, startCamera } = useAROverlay(videoRef, canvasRef, product);
+  const { hasPermission, error, isInitializing, isProcessing, isModelLoading, startCamera } = useAROverlay(videoRef, canvasRef, product);
 
   return (
     <div className="relative w-full h-full bg-neutral-900 rounded-2xl overflow-hidden flex flex-col items-center justify-center">
@@ -25,7 +25,7 @@ export default function CameraView({ product }: CameraViewProps) {
         className="w-full h-full object-cover"
       />
       
-      {/* Overlay UI based on state */}
+      {/* State 1: Camera not started — show start prompt */}
       {hasPermission === null && !isInitializing && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 z-10 text-white p-6 text-center">
           <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4">
@@ -44,13 +44,15 @@ export default function CameraView({ product }: CameraViewProps) {
         </div>
       )}
 
+      {/* State 2: Camera stream being acquired */}
       {isInitializing && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900/80 backdrop-blur-sm z-10 text-white">
           <Loader2 size={48} className="animate-spin text-[#ef4d23] mb-4" />
-          <p className="text-sm font-medium animate-pulse">Initializing AR Engine...</p>
+          <p className="text-sm font-medium animate-pulse">Starting Camera...</p>
         </div>
       )}
 
+      {/* State 3: Camera denied */}
       {hasPermission === false && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 z-10 text-white p-6 text-center">
           <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
@@ -77,19 +79,50 @@ export default function CameraView({ product }: CameraViewProps) {
         </div>
       )}
 
-      {hasPermission && !isProcessing && !isInitializing && (
-        <div className="absolute top-4 left-4 z-10">
-          <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded border border-yellow-500/30">
-            Waiting for Tracking...
-          </span>
+      {/* State 4: Camera ready, MediaPipe model still loading */}
+      {isModelLoading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+          <div className="relative">
+            {/* Pulsing load ring */}
+            <div className="absolute -inset-12 border-2 border-[#ef4d23]/30 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="absolute -inset-8 border border-white/10 rounded-full animate-[spin_6s_linear_infinite]" />
+            
+            <div className="bg-black/60 backdrop-blur-lg text-white text-sm px-6 py-3 rounded-full border border-white/10 shadow-2xl shadow-black/50 flex items-center gap-3">
+              <Loader2 size={18} className="animate-spin text-[#ef4d23]" />
+              <span className="font-medium tracking-wide text-white/90">
+                Loading AR Engine...
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* State 5: Everything ready, waiting for face/hand detection */}
+      {hasPermission && !isProcessing && !isInitializing && !isModelLoading && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+          <div className="relative">
+            {/* Animated scanning rings */}
+            <div className="absolute -inset-8 border border-dashed border-white/20 rounded-full animate-[spin_8s_linear_infinite]" />
+            <div className="absolute -inset-8 border border-transparent border-t-[#ef4d23] rounded-full animate-[spin_3s_linear_infinite] opacity-70" />
+            
+            {/* Status Pill */}
+            <div className="bg-black/50 backdrop-blur-md text-white text-sm px-6 py-3 rounded-full border border-white/10 shadow-2xl shadow-black/50 flex items-center gap-3">
+              <Loader2 size={18} className="animate-spin text-[#ef4d23]" />
+              <span className="font-medium tracking-wide text-white/90">
+                Align {product.category === 'nails' || product.arType === 'finger' || product.arType === 'wrist' ? 'Hands' : 'Face'} in View
+              </span>
+            </div>
+          </div>
         </div>
       )}
       
+      {/* State 6: Actively tracking — show live indicator */}
       {hasPermission && isProcessing && (
-        <div className="absolute top-4 left-4 z-10">
-          <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-1 rounded border border-emerald-500/30">
-            AR Active
-          </span>
+        <div className="absolute top-6 left-6 z-10">
+          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+            <span className="text-white/90 text-xs font-medium tracking-wider uppercase">Live Tracking</span>
+          </div>
         </div>
       )}
     </div>
