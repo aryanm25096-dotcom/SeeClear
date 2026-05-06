@@ -46,23 +46,19 @@ function generateReviewData(category: string): {
   highlights: ReviewHighlight[];
   topReviews: IndividualReview[];
 } {
-  const isMakeup = ["lips", "nails", "foundation", "blush", "haircolor"].includes(category);
-  const isEyewear = category === "sunglasses";
+  // Only lip shade products exist now
+  const isMakeup = true;
 
   return {
-    overallRating: isMakeup ? 4.3 : isEyewear ? 4.5 : 4.1,
-    totalReviews: isMakeup ? 8420 : isEyewear ? 5210 : 3150,
+    overallRating: 4.3,
+    totalReviews: 8420,
     platformSummaries: [
       { platform: "nykaa", avgRating: 4.3, totalReviews: 2841, distribution: [52, 28, 12, 5, 3] },
       { platform: "amazon", avgRating: 4.5, totalReviews: 12430, distribution: [58, 25, 10, 4, 3] },
       { platform: "flipkart", avgRating: 4.1, totalReviews: 8920, distribution: [45, 30, 14, 7, 4] },
       { platform: "myntra", avgRating: 4.2, totalReviews: 3510, distribution: [48, 27, 15, 6, 4] },
     ],
-    aiSummary: isMakeup
-      ? "Highly rated across all platforms. Users love the long-lasting formula and rich pigmentation. Common praise includes vibrant color payoff and comfortable wear. A few reviewers note it can feel slightly drying after 6+ hours. Overall, an excellent product for daily and evening use."
-      : isEyewear
-        ? "Consistently rated 4.5+ across platforms. Users highlight the premium build quality, UV protection, and comfortable fit. The classic design receives universal praise. Minor concerns include the price point and occasional reports of loose hinges after extended use."
-        : "Well-received with solid ratings across platforms. Users appreciate the quality and value for money. Most complaints are related to packaging during delivery rather than the product itself.",
+    aiSummary: "Highly rated across all platforms. Users love the long-lasting formula and rich pigmentation. Common praise includes vibrant color payoff and comfortable wear. A few reviewers note it can feel slightly drying after 6+ hours. Overall, an excellent product for daily and evening use.",
     highlights: isMakeup
       ? [
           { text: "Long-lasting formula", sentiment: "positive", count: 2340 },

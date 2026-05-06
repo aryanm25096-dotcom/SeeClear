@@ -2,14 +2,7 @@ import type { Category } from "@/data/products";
 
 const CATEGORIES: Array<{ key: "all" | Category; label: string }> = [
   { key: "all", label: "All" },
-  { key: "lips", label: "Lips" },
-  { key: "nails", label: "Nails" },
-  { key: "sunglasses", label: "Sunglasses" },
-  { key: "jewellery", label: "Jewellery" },
-  { key: "foundation", label: "Foundation" },
-  { key: "blush", label: "Blush" },
-  { key: "haircolor", label: "Hair Color" },
-  { key: "toys", label: "Toys" },
+  { key: "lips", label: "Lip Shades" },
 ];
 
 export default function FilterBar({
