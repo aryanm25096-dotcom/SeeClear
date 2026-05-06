@@ -109,16 +109,65 @@ function detectCategory(name: string): string {
   return "Beauty & Personal Care";
 }
 
-// ─── RapidAPI: Real-Time Product Search (Amazon results) ─────────────────────
+// ─── Amazon result shape ──────────────────────────────────────────────────────
 
-async function searchAmazonViaRapidAPI(query: string): Promise<{
+interface AmazonResult {
   title: string;
   image: string;
   price: number;
   rating: number;
   reviews: number;
   url: string;
-} | null> {
+}
+
+// ─── RapidAPI #1: Real-Time Amazon Data (primary — direct Amazon scrape) ─────
+
+async function searchAmazonDirect(query: string): Promise<AmazonResult | null> {
+  if (!RAPIDAPI_KEY) return null;
+
+  try {
+    const res = await fetch(
+      `https://real-time-amazon-data.p.rapidapi.com/search?query=${encodeURIComponent(query)}&country=IN&page=1&sort_by=RELEVANCE`,
+      {
+        headers: {
+          "X-RapidAPI-Key": RAPIDAPI_KEY,
+          "X-RapidAPI-Host": "real-time-amazon-data.p.rapidapi.com",
+        },
+      }
+    );
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const products = data?.data?.products ?? [];
+
+    if (!products.length) return null;
+
+    // Pick the first product with a valid price
+    const product = products.find((p: any) => {
+      const price = parseFloat(String(p.product_price ?? "0").replace(/[^0-9.]/g, ""));
+      return price > 0;
+    }) ?? products[0];
+
+    const price = parseFloat(
+      String(product?.product_price ?? "0").replace(/[^0-9.]/g, "")
+    ) || 0;
+
+    return {
+      title:   product?.product_title ?? query,
+      image:   product?.product_photo ?? product?.product_photos?.[0] ?? "",
+      price,
+      rating:  parseFloat(product?.product_star_rating ?? "4.2") || 4.2,
+      reviews: parseInt(String(product?.product_num_ratings ?? "500").replace(/[^0-9]/g, ""), 10) || 500,
+      url:     product?.product_url ?? `https://www.amazon.in/s?k=${encodeURIComponent(query)}`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─── RapidAPI #2: Real-Time Product Search (fallback — Google Shopping) ───────
+
+async function searchAmazonFallback(query: string): Promise<AmazonResult | null> {
   if (!RAPIDAPI_KEY) return null;
 
   try {
@@ -138,7 +187,6 @@ async function searchAmazonViaRapidAPI(query: string): Promise<{
 
     if (!products.length) return null;
 
-    // Find the best Amazon IN result
     const amazonProduct = products.find((p: any) =>
       (p.product_page_url ?? p.url ?? "").includes("amazon.in")
     ) ?? products[0];
@@ -162,6 +210,17 @@ async function searchAmazonViaRapidAPI(query: string): Promise<{
   } catch {
     return null;
   }
+}
+
+// ─── Combined Amazon search: tries direct API first, then fallback ───────────
+
+async function searchAmazonViaRapidAPI(query: string): Promise<AmazonResult | null> {
+  // Try the direct Amazon Data API first (more accurate prices + product URLs)
+  const direct = await searchAmazonDirect(query);
+  if (direct && direct.price > 0) return direct;
+
+  // Fall back to generic product search
+  return searchAmazonFallback(query);
 }
 
 // ─── RapidAPI: Nykaa product search ──────────────────────────────────────────
