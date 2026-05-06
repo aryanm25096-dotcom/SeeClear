@@ -23,7 +23,6 @@ import {
 import Navbar from "@/app/components/Navbar";
 import { platforms, type PlatformKey } from "@/data/platforms";
 import { formatPrice } from "@/utils/priceCalculator";
-import { trackProduct } from "@/server/trackProduct";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
@@ -310,13 +309,15 @@ function TrackPage() {
     return () => clearTimeout(t);
   }, [isSearching, searchStep]);
 
-  // Fetch from server function once all steps complete, fallback to simulateSearch
+  // Fetch from API once all steps complete, fallback to simulateSearch
   useEffect(() => {
     if (!isSearching || searchStep < SEARCH_STEPS.length) return;
     let cancelled = false;
     const fetchResult = async () => {
       try {
-        const data = await trackProduct({ data: { url } });
+        const res = await fetch(`/api/track?url=${encodeURIComponent(url)}`);
+        if (!res.ok) throw new Error(`API error: ${res.status}`);
+        const data = await res.json();
         if (cancelled) return;
         setResult(data as TrackedResult);
       } catch (err: any) {
