@@ -14,6 +14,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY ?? "";
+const AMAZON_HOST  = process.env.RAPIDAPI_AMAZON_HOST ?? "real-time-amazon-data.p.rapidapi.com";
+const PRODUCT_SEARCH_HOST = process.env.RAPIDAPI_PRODUCT_SEARCH_HOST ?? "real-time-product-search.p.rapidapi.com";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -127,11 +129,11 @@ async function searchAmazonDirect(query: string): Promise<AmazonResult | null> {
 
   try {
     const res = await fetch(
-      `https://real-time-amazon-data.p.rapidapi.com/search?query=${encodeURIComponent(query)}&country=IN&page=1&sort_by=RELEVANCE`,
+      `https://${AMAZON_HOST}/search?query=${encodeURIComponent(query)}&country=IN&page=1&sort_by=RELEVANCE`,
       {
         headers: {
           "X-RapidAPI-Key": RAPIDAPI_KEY,
-          "X-RapidAPI-Host": "real-time-amazon-data.p.rapidapi.com",
+          "X-RapidAPI-Host": AMAZON_HOST,
         },
       }
     );
@@ -172,11 +174,11 @@ async function searchAmazonFallback(query: string): Promise<AmazonResult | null>
 
   try {
     const res = await fetch(
-      `https://real-time-product-search.p.rapidapi.com/search?q=${encodeURIComponent(query + " site:amazon.in")}&country=IN&language=en`,
+      `https://${PRODUCT_SEARCH_HOST}/search?q=${encodeURIComponent(query + " site:amazon.in")}&country=IN&language=en`,
       {
         headers: {
           "X-RapidAPI-Key": RAPIDAPI_KEY,
-          "X-RapidAPI-Host": "real-time-product-search.p.rapidapi.com",
+          "X-RapidAPI-Host": PRODUCT_SEARCH_HOST,
         },
       }
     );
@@ -234,11 +236,11 @@ async function searchNykaaViaRapidAPI(query: string): Promise<{
   try {
     // Nykaa doesn't have an official RapidAPI — we search via Google Shopping
     const res = await fetch(
-      `https://real-time-product-search.p.rapidapi.com/search?q=${encodeURIComponent(query + " site:nykaa.com")}&country=IN&language=en`,
+      `https://${PRODUCT_SEARCH_HOST}/search?q=${encodeURIComponent(query + " site:nykaa.com")}&country=IN&language=en`,
       {
         headers: {
           "X-RapidAPI-Key": RAPIDAPI_KEY,
-          "X-RapidAPI-Host": "real-time-product-search.p.rapidapi.com",
+          "X-RapidAPI-Host": PRODUCT_SEARCH_HOST,
         },
       }
     );
