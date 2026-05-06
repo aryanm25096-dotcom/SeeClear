@@ -1,10 +1,5 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": ".output",
-  "functions": {
-    "api/*.ts": {
-      "runtime": "@vercel/node"
-    }
-  }
+  "outputDirectory": ".output"
 }

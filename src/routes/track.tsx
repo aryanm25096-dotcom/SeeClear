@@ -23,6 +23,7 @@ import {
 import Navbar from "@/app/components/Navbar";
 import { platforms, type PlatformKey } from "@/data/platforms";
 import { formatPrice } from "@/utils/priceCalculator";
+import { trackProduct } from "@/server/trackProduct";
 
 export const Route = createFileRoute("/track")({
   head: () => ({
@@ -309,26 +310,25 @@ function TrackPage() {
     return () => clearTimeout(t);
   }, [isSearching, searchStep]);
 
-  // Fetch from API once all steps complete, fallback to simulateSearch
+  // Fetch from server function once all steps complete, fallback to simulateSearch
   useEffect(() => {
     if (!isSearching || searchStep < SEARCH_STEPS.length) return;
-    const controller = new AbortController();
+    let cancelled = false;
     const fetchResult = async () => {
       try {
-        const res = await fetch(`/api/track?url=${encodeURIComponent(url)}`, { signal: controller.signal });
-        if (!res.ok) throw new Error("API failed");
-        const data = await res.json();
-        setResult(data);
+        const data = await trackProduct({ data: { url } });
+        if (cancelled) return;
+        setResult(data as TrackedResult);
       } catch (err: any) {
-        if (err.name === "AbortError") return;
+        if (cancelled) return;
         setApiError("Live data unavailable — showing estimated prices.");
         setResult(simulateSearch(url));
       } finally {
-        setIsSearching(false);
+        if (!cancelled) setIsSearching(false);
       }
     };
     fetchResult();
-    return () => controller.abort();
+    return () => { cancelled = true; };
   }, [isSearching, searchStep, url]);
 
   const best = result?.results.find((r) => r.inStock);
