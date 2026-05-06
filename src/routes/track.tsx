@@ -18,6 +18,7 @@ import {
   Star,
   Package,
   X,
+  Zap,
 } from "lucide-react";
 import Navbar from "@/app/components/Navbar";
 import { platforms, type PlatformKey } from "@/data/platforms";
@@ -45,6 +46,7 @@ interface TrackedResult {
   image: string;
   category: string;
   sourcePlatform: PlatformKey;
+  fromAPI: boolean;
   results: {
     platform: PlatformKey;
     price: number;
@@ -254,6 +256,7 @@ function simulateSearch(url: string): TrackedResult {
     image,
     category: detectedCategory,
     sourcePlatform,
+    fromAPI: false,
     results: [
       generatePlatform("nykaa", 0, 0, true, 4.3, 2841, "2-4 days"),
       generatePlatform("amazon", variation(7), 40, true, 4.5, 12430, "1-2 days"),
@@ -287,6 +290,7 @@ function TrackPage() {
   const [searchStep, setSearchStep] = useState(0);
   const [result, setResult] = useState<TrackedResult | null>(null);
   const [alertSet, setAlertSet] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = () => {
@@ -295,21 +299,36 @@ function TrackPage() {
     setSearchStep(0);
     setResult(null);
     setAlertSet(false);
+    setApiError(null);
   };
 
+  // Step animation timer
   useEffect(() => {
-    if (!isSearching) return;
+    if (!isSearching || searchStep >= SEARCH_STEPS.length) return;
+    const t = setTimeout(() => setSearchStep((s) => s + 1), 550);
+    return () => clearTimeout(t);
+  }, [isSearching, searchStep]);
 
-    if (searchStep < SEARCH_STEPS.length) {
-      const t = setTimeout(() => setSearchStep((s) => s + 1), 550);
-      return () => clearTimeout(t);
-    } else {
-      const t = setTimeout(() => {
+  // Fetch from API once all steps complete, fallback to simulateSearch
+  useEffect(() => {
+    if (!isSearching || searchStep < SEARCH_STEPS.length) return;
+    const controller = new AbortController();
+    const fetchResult = async () => {
+      try {
+        const res = await fetch(`/api/track?url=${encodeURIComponent(url)}`, { signal: controller.signal });
+        if (!res.ok) throw new Error("API failed");
+        const data = await res.json();
+        setResult(data);
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+        setApiError("Live data unavailable — showing estimated prices.");
         setResult(simulateSearch(url));
+      } finally {
         setIsSearching(false);
-      }, 400);
-      return () => clearTimeout(t);
-    }
+      }
+    };
+    fetchResult();
+    return () => controller.abort();
   }, [isSearching, searchStep, url]);
 
   const best = result?.results.find((r) => r.inStock);
@@ -415,6 +434,14 @@ function TrackPage() {
             </div>
           </div>
 
+          {/* API ERROR BANNER */}
+          {apiError && (
+            <div className="max-w-2xl mx-auto mb-4 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 text-[13px] text-amber-700">
+              <Zap size={14} className="shrink-0" />
+              {apiError}
+            </div>
+          )}
+
           {/* SEARCHING STATE */}
           {isSearching && (
             <div className="max-w-lg mx-auto bg-neutral-50 rounded-2xl p-6 border border-neutral-200">
@@ -477,6 +504,11 @@ function TrackPage() {
                     <span className="bg-neutral-200 text-neutral-700 rounded-full px-2.5 py-0.5 text-[11px]">
                       Source: {platforms[result.sourcePlatform].label}
                     </span>
+                    {result.fromAPI && (
+                      <span className="bg-emerald-100 text-emerald-700 rounded-full px-2.5 py-0.5 text-[11px] inline-flex items-center gap-1">
+                        <Zap size={10} /> Live prices
+                      </span>
+                    )}
                   </div>
                   {best && savings > 0 && (
                     <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 rounded-full px-3 py-1 text-[12px] font-medium">
@@ -495,7 +527,7 @@ function TrackPage() {
                     Price Comparison ({result.results.length} platforms)
                   </h3>
                   <span className="text-[10px] text-neutral-400 bg-neutral-100 rounded-full px-2 py-0.5">
-                    Prices fetched in real-time · may vary
+                    {result.fromAPI ? "Live prices · may vary" : "Estimated prices · may vary"}
                   </span>
                 </div>
                 {result.results.map((entry, i) => {
@@ -637,7 +669,11 @@ function TrackPage() {
                     key={item.url}
                     onClick={() => {
                       setUrl(item.url);
-                      setTimeout(() => handleSearch(), 100);
+                      setIsSearching(true);
+                      setSearchStep(0);
+                      setResult(null);
+                      setAlertSet(false);
+                      setApiError(null);
                     }}
                     className="w-full flex items-center gap-3 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-xl px-4 py-3 text-left transition-colors group"
                   >
