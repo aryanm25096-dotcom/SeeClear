@@ -77,18 +77,7 @@ function buildPlatforms(
   return { platforms, bestPrice: { platform: cheapest.platform, total: cheapest.total } };
 }
 
-const IMG = {
-  lipstick:
-    "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=800&q=70",
-  lipstickAlt:
-    "https://images.unsplash.com/photo-1599733589046-8a35aacc3a64?w=800&q=70",
-  lipstickMatte:
-    "https://images.unsplash.com/photo-1583241800698-e8ab01830a07?w=800&q=70",
-  lipstickGloss:
-    "https://images.unsplash.com/photo-1631214500115-598fc2cb8ada?w=800&q=70",
-  lipstickLiquid:
-    "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=800&q=70",
-};
+
 
 function lipstickProduct(
   id: string,
@@ -96,7 +85,6 @@ function lipstickProduct(
   shadeName: string,
   shade: string,
   basePrice: number,
-  thumb?: string,
 ): Product {
   const built = buildPlatforms([
     {
@@ -125,6 +113,11 @@ function lipstickProduct(
       url: `https://www.myntra.com/${encodeURIComponent(brand)}`,
     },
   ]);
+
+  // Generate a distinct image matching the brand and shade using Pollinations AI
+  const prompt = encodeURIComponent(`product photography of ${brand} ${shadeName} lipstick makeup isolated on white background high quality studio lighting`);
+  const dynamicImage = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=800&nologo=true`;
+
   return {
     id,
     name: `${brand} Matte Lipstick — ${shadeName}`,
@@ -133,7 +126,7 @@ function lipstickProduct(
     arType: "lips",
     shade,
     overlayImage: null,
-    thumbnail: thumb ?? IMG.lipstick,
+    thumbnail: dynamicImage,
     dimensions: null,
     ...built,
   };
@@ -151,24 +144,24 @@ export const products: Product[] = [
   lipstickProduct("lip-lakme-mauve",    "Lakme 9to5", "Mauve Affair",    "#C08081", 649),
 
   // ─── MAC range ──────────────────────────────────────────────────────────
-  lipstickProduct("lip-mac-retro",      "MAC", "Retro Red",              "#C41E3A", 1850, IMG.lipstickAlt),
-  lipstickProduct("lip-mac-rubywoo",    "MAC", "Ruby Woo",               "#CC0033", 1850, IMG.lipstickAlt),
-  lipstickProduct("lip-mac-velvet",     "MAC", "Velvet Teddy",           "#B5654A", 1850, IMG.lipstickMatte),
-  lipstickProduct("lip-mac-diva",       "MAC", "Diva",                   "#7B0051", 1850, IMG.lipstickMatte),
-  lipstickProduct("lip-mac-taupe",      "MAC", "Taupe",                  "#B27D6A", 1850, IMG.lipstickMatte),
+  lipstickProduct("lip-mac-retro",      "MAC", "Retro Red",              "#C41E3A", 1850),
+  lipstickProduct("lip-mac-rubywoo",    "MAC", "Ruby Woo",               "#CC0033", 1850),
+  lipstickProduct("lip-mac-velvet",     "MAC", "Velvet Teddy",           "#B5654A", 1850),
+  lipstickProduct("lip-mac-diva",       "MAC", "Diva",                   "#7B0051", 1850),
+  lipstickProduct("lip-mac-taupe",      "MAC", "Taupe",                  "#B27D6A", 1850),
 
   // ─── Maybelline range ───────────────────────────────────────────────────
-  lipstickProduct("lip-mayb-seductress","Maybelline", "Seductress",      "#D32F2F", 449, IMG.lipstickLiquid),
-  lipstickProduct("lip-mayb-lover",     "Maybelline", "Lover",           "#E57373", 449, IMG.lipstickLiquid),
-  lipstickProduct("lip-mayb-ruler",     "Maybelline", "Ruler",           "#B71C1C", 449, IMG.lipstickLiquid),
-  lipstickProduct("lip-mayb-dreamer",   "Maybelline", "Dreamer",         "#F48FB1", 449, IMG.lipstickLiquid),
-  lipstickProduct("lip-mayb-pioneer",   "Maybelline", "Pioneer",         "#AD1457", 399, IMG.lipstickLiquid),
+  lipstickProduct("lip-mayb-seductress","Maybelline", "Seductress",      "#D32F2F", 449),
+  lipstickProduct("lip-mayb-lover",     "Maybelline", "Lover",           "#E57373", 449),
+  lipstickProduct("lip-mayb-ruler",     "Maybelline", "Ruler",           "#B71C1C", 449),
+  lipstickProduct("lip-mayb-dreamer",   "Maybelline", "Dreamer",         "#F48FB1", 449),
+  lipstickProduct("lip-mayb-pioneer",   "Maybelline", "Pioneer",         "#AD1457", 399),
 
   // ─── SUGAR Cosmetics range ──────────────────────────────────────────────
-  lipstickProduct("lip-sugar-scarlet",  "SUGAR", "Scarlet O'Hara",       "#FF2400", 699, IMG.lipstickGloss),
-  lipstickProduct("lip-sugar-rose",     "SUGAR", "Rosé All Day",         "#D4707E", 699, IMG.lipstickGloss),
-  lipstickProduct("lip-sugar-wine",     "SUGAR", "Wine & Dine",          "#722F37", 699, IMG.lipstickGloss),
-  lipstickProduct("lip-sugar-peach",    "SUGAR", "Peach Pout",           "#FFCBA4", 649, IMG.lipstickGloss),
+  lipstickProduct("lip-sugar-scarlet",  "SUGAR", "Scarlet O'Hara",       "#FF2400", 699),
+  lipstickProduct("lip-sugar-rose",     "SUGAR", "Rosé All Day",         "#D4707E", 699),
+  lipstickProduct("lip-sugar-wine",     "SUGAR", "Wine & Dine",          "#722F37", 699),
+  lipstickProduct("lip-sugar-peach",    "SUGAR", "Peach Pout",           "#FFCBA4", 649),
 
   // ─── Colorbar range ────────────────────────────────────────────────────
   lipstickProduct("lip-cb-passion",     "Colorbar", "Passion",           "#E63946", 525),
